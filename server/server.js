@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const productRoutes = require('./routes/productRoutes'); // <--- AÑADE ESTA LÍNEA
 
 // 2. Cargar las variables de entorno del archivo .env que está en la carpeta /server
 dotenv.config(); // Por defecto buscará un archivo .env en el directorio actual (server/)
@@ -48,6 +49,9 @@ mongoose.connect(MONGODB_URI)
 app.get('/api', (req, res) => {
     res.json({ message: '🎉 Welcome to the CLINICA-VETERINARIA-SITIO-WEB API! 🐾' });
 });
+
+// Montar las rutas de la API
+app.use('/api/products', productRoutes); // <--- AÑADE ESTA LÍNEA
 
 // Aquí irán las rutas para productos, citas, etc. más adelante
 
