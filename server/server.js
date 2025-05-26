@@ -7,6 +7,8 @@ const productRoutes = require('./routes/productRoutes'); // Importamos las rutas
 const serviceRoutes = require('./routes/serviceRoutes'); // Importamos las rutas de servicios
 const appointmentRoutes = require('./routes/appointmentRoutes'); // Importamos las rutas de citas
 const veterinarianRoutes = require('./routes/veterinarianRoutes'); // Importamos las rutas de veterinarios
+const orderRoutes = require('./routes/orderRoutes'); // Importamos las rutas de órdenes
+
 
 // 2. Cargar las variables de entorno del archivo .env que está en la carpeta /server
 dotenv.config(); // Por defecto buscará un archivo .env en el directorio actual (server/)
@@ -58,6 +60,7 @@ app.use('/api/products', productRoutes); // Rutas para productos
 app.use('/api/services', serviceRoutes); // Rutas de servicios
 app.use('/api/appointments', appointmentRoutes); // Rutas de citas
 app.use('/api/veterinarians', veterinarianRoutes); // Rutas de veterinarios
+app.use('/api/orders', orderRoutes); // Rutas de órdenes
 
 
 // Aquí irán las rutas para productos, citas, etc. más adelante
