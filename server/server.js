@@ -3,8 +3,10 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cors = require('cors');
-const productRoutes = require('./routes/productRoutes');
-const serviceRoutes = require('./routes/serviceRoutes');
+const productRoutes = require('./routes/productRoutes'); // Importamos las rutas de productos
+const serviceRoutes = require('./routes/serviceRoutes'); // Importamos las rutas de servicios
+const appointmentRoutes = require('./routes/appointmentRoutes'); // Importamos las rutas de citas
+const veterinarianRoutes = require('./routes/veterinarianRoutes'); // Importamos las rutas de veterinarios
 
 // 2. Cargar las variables de entorno del archivo .env que está en la carpeta /server
 dotenv.config(); // Por defecto buscará un archivo .env en el directorio actual (server/)
@@ -54,6 +56,9 @@ app.get('/api', (req, res) => {
 // Montar las rutas de la API
 app.use('/api/products', productRoutes); // Rutas para productos
 app.use('/api/services', serviceRoutes); // Rutas de servicios
+app.use('/api/appointments', appointmentRoutes); // Rutas de citas
+app.use('/api/veterinarians', veterinarianRoutes); // Rutas de veterinarios
+
 
 // Aquí irán las rutas para productos, citas, etc. más adelante
 
