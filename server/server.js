@@ -8,6 +8,7 @@ const serviceRoutes = require('./routes/serviceRoutes'); // Importamos las rutas
 const appointmentRoutes = require('./routes/appointmentRoutes'); // Importamos las rutas de citas
 const veterinarianRoutes = require('./routes/veterinarianRoutes'); // Importamos las rutas de veterinarios
 const orderRoutes = require('./routes/orderRoutes'); // Importamos las rutas de órdenes
+const authRoutes = require('./routes/authRoutes'); // Importamos las rutas de autenticación
 
 
 // 2. Cargar las variables de entorno del archivo .env que está en la carpeta /server
@@ -61,7 +62,7 @@ app.use('/api/services', serviceRoutes); // Rutas de servicios
 app.use('/api/appointments', appointmentRoutes); // Rutas de citas
 app.use('/api/veterinarians', veterinarianRoutes); // Rutas de veterinarios
 app.use('/api/orders', orderRoutes); // Rutas de órdenes
-
+app.use('/api/auth', authRoutes); // Rutas de autenticación
 
 // Aquí irán las rutas para productos, citas, etc. más adelante
 
