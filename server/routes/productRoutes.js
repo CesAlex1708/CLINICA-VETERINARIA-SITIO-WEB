@@ -10,17 +10,21 @@ const {
     deleteProduct,
 } = require('../controllers/productController');
 
+// Importar middlewares de autenticación y autorización
+const { protect, authorize } = require('../middleware/authMiddleware');
+
 // Definimos las rutas y las asociamos con las funciones del controlador
 
 // Ruta para obtener todos los productos y crear un nuevo producto
 router.route('/')
     .get(getAllProducts)
-    .post(createProduct); // Más adelante protegeremos esta ruta (solo admin)
+    .post(protect, authorize('admin'), createProduct); // Proteger y autorizar para admin
 
-// Ruta para obtener, actualizar y eliminar un producto específico por su ID
+// Ruta para obtener un producto específico por su ID (Pública)
+// y actualizar y eliminar un producto (Solo Admin)
 router.route('/:id')
     .get(getProductById)
-    .put(updateProduct)    // Más adelante protegeremos esta ruta
-    .delete(deleteProduct); // Más adelante protegeremos esta ruta
+    .put(protect, authorize('admin'), updateProduct)    // Proteger y autorizar para admin
+    .delete(protect, authorize('admin'), deleteProduct); // Proteger y autorizar para admin
 
-module.exports = router; // Exportamos el enrutador
+module.exports = router;

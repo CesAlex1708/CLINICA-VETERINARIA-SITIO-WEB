@@ -48,4 +48,21 @@ const protect = async (req, res, next) => {
 
 // Más adelante aquí añadiremos el middleware 'authorize' para roles
 
-module.exports = { protect };
+const authorize = (...roles) => { // Recibe una lista de roles permitidos como argumentos
+    return (req, res, next) => {
+        // req.user debería haber sido establecido por el middleware 'protect'
+        if (!req.user || !req.user.role) {
+            // Esto no debería suceder si 'protect' se ejecuta antes y correctamente
+            return res.status(401).json({ message: 'No autorizado, información de usuario no disponible.' });
+        }
+
+        if (!roles.includes(req.user.role)) {
+            return res.status(403).json({ // 403 Forbidden
+                message: `Acceso denegado. Rol '${req.user.role}' no tiene permiso para acceder a este recurso.`
+            });
+        }
+        next(); // El rol del usuario está en la lista de roles permitidos, continuar
+    };
+};
+
+module.exports = { protect, authorize };
