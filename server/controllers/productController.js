@@ -37,26 +37,35 @@ const getAllProducts = async (req, res) => {
         const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
 
-        // Construir el objeto de filtro
+        // Construir el objeto de filtro base
         const filterObject = {};
+
+        // 1. Aplicar filtro de categoría si existe
         if (req.query.category) {
             filterObject.category = req.query.category;
-            // Para hacer la búsqueda de categoría insensible a mayúsculas/minúsculas:
+            // Para búsqueda de categoría insensible a mayúsculas/minúsculas y exacta:
             // filterObject.category = { $regex: `^<span class="math-inline">\{req\.query\.category\}</span>`, $options: 'i' };
         }
 
-        // Aquí podríamos añadir más filtros si quisiéramos, por ejemplo, por precio:
-        // if (req.query.price_lte) { // precio menor o igual que
-        //     filterObject.price = { ...filterObject.price, $lte: parseFloat(req.query.price_lte) };
-        // }
-        // if (req.query.price_gte) { // precio mayor o igual que
-        //     filterObject.price = { ...filterObject.price, $gte: parseFloat(req.query.price_gte) };
-        // }
+        // 2. Aplicar filtro de búsqueda por palabra clave si existe
+        if (req.query.search) {
+            const searchTerm = req.query.search;
+            // Usamos $or para buscar el término en múltiples campos (nombre o descripción)
+            // $regex para búsqueda parcial, $options: 'i' para insensibilidad a mayúsculas/minúsculas
+            filterObject.$or = [
+                { name: { $regex: searchTerm, $options: 'i' } },
+                { description: { $regex: searchTerm, $options: 'i' } }
+            ];
+            // Nota: Si la categoría también está presente, MongoDB buscará documentos
+            // que cumplan con la categoría Y (el término de búsqueda en nombre O descripción).
+        }
 
-        // Contar el total de documentos que coinciden con el filtro
+        // Aquí podrían añadirse más filtros (ej. precio)
+
+        // Contar el total de documentos que coinciden con todos los filtros aplicados
         const totalProducts = await Product.countDocuments(filterObject);
 
-        // Obtener los productos para la página actual que coinciden con el filtro
+        // Obtener los productos para la página actual que coinciden con todos los filtros
         const products = await Product.find(filterObject)
             .limit(limit)
             .skip(skip)
@@ -69,10 +78,10 @@ const getAllProducts = async (req, res) => {
             totalPages: Math.ceil(totalProducts / limit),
             totalProducts: totalProducts,
             limit: limit,
-            filter: filterObject // Opcional: devolver el filtro aplicado
+            appliedFilters: filterObject // Devolver los filtros aplicados puede ser útil para depuración
         });
     } catch (error) {
-        console.error('Error fetching products with pagination and filter:', error);
+        console.error('Error fetching products with pagination, filter, and search:', error);
         res.status(500).json({ message: 'Error al obtener los productos', error: error.message });
     }
 };
