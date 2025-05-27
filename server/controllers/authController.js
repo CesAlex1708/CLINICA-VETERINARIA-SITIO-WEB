@@ -54,6 +54,7 @@ const registerUser = async (req, res) => {
 // @desc    Autenticar (iniciar sesión) un usuario y obtener token
 // @route   POST /api/users/login (o /api/auth/login)
 // @access  Public
+
 const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -84,6 +85,23 @@ const loginUser = async (req, res) => {
     }
 };
 
+const getMe = async (req, res) => {
+    // req.user es establecido por el middleware 'protect'
+    if (req.user) {
+        res.status(200).json({
+            _id: req.user._id,
+            name: req.user.name,
+            email: req.user.email,
+            role: req.user.role,
+            isActive: req.user.isActive,
+            createdAt: req.user.createdAt
+        });
+    } else {
+        // Este caso no debería ocurrir si 'protect' funciona bien, pero por si acaso.
+        res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+};
+
 // Podríamos añadir más funciones aquí después, como:
 // - getUserProfile (para que un usuario logueado obtenga sus propios datos)
 // - updateUserProfile
@@ -94,4 +112,5 @@ const loginUser = async (req, res) => {
 module.exports = {
     registerUser,
     loginUser,
+    getMe,
 };

@@ -5,7 +5,10 @@ const router = express.Router();
 const {
     registerUser,
     loginUser,
+    getMe,
 } = require('../controllers/authController');
+
+const { protect } = require('../middleware/authMiddleware'); // Importamos el middleware de protección para rutas privadas
 
 // Ruta para registrar un nuevo usuario
 // POST /api/auth/register
@@ -17,5 +20,7 @@ router.post('/login', loginUser);
 
 // Más adelante podríamos añadir más rutas aquí, como:
 // router.get('/me', protect, getMe); // Para obtener el perfil del usuario logueado
+
+router.get('/me', protect, getMe); // Ruta para obtener el perfil del usuario logueados
 
 module.exports = router;
