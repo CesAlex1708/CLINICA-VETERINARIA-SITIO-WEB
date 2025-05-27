@@ -21,12 +21,15 @@ console.log('DEBUG - Loaded PORT from .env:', process.env.PORT);
 
 // 3. Crear la aplicación Express
 const app = express();
+const path = require('path');
 
 // 4. Middlewares esenciales
 // Habilitar CORS para permitir peticiones desde el frontend
 app.use(cors());
 // Permitir que Express entienda JSON en el cuerpo de las peticiones
 app.use(express.json());
+// Permitir que Express sirva archivos estáticos desde la carpeta 'public'
+app.use(express.static(path.join(__dirname, 'public')));
 
 // 5. Conexión a la Base de Datos MongoDB Atlas
 const MONGODB_URI = process.env.MONGODB_URI;

@@ -1,29 +1,92 @@
 const Product = require('../models/Product'); // Importamos el modelo Product
 
-// @desc    Crear un nuevo producto
+
+// @desc    Crear un nuevo producto CON IMAGEN
 // @route   POST /api/products
-// @access  Private/Admin (lo haremos privado más adelante)
+// @access  Private/Admin
 const createProduct = async (req, res) => {
     try {
-        // Obtenemos los datos del cuerpo de la solicitud
-        // En un futuro, aquí podríamos añadir validación extra o sanitización
-        const { name, description, price, category, imageUrl, stock } = req.body;
+        const { name, description, price, category, stock } = req.body;
+
+        let imageUrl = ''; // Valor por defecto si no se sube imagen
+        if (req.file) {
+            // req.file es añadido por multer si se sube un archivo
+            // Construimos la URL relativa para guardar en la BD
+            // Asumiendo que 'server/public' se sirve como raíz estática '/'
+            // y 'uploads/images' está dentro de 'public'
+            imageUrl = `/uploads/images/${req.file.filename}`;
+        } else if (req.body.imageUrl) {
+            // Permitir también pasar una URL externa si no se sube archivo
+            imageUrl = req.body.imageUrl;
+        }
+
 
         const product = new Product({
             name,
             description,
             price,
             category,
-            imageUrl,
+            imageUrl: imageUrl, // Usar la ruta del archivo subido o la URL provista
             stock,
-            // Podríamos añadir createdBy: req.user.id si tuviéramos autenticación
         });
 
         const createdProduct = await product.save();
         res.status(201).json(createdProduct);
     } catch (error) {
-        console.error('Error creating product:', error);
+        console.error('Error creating product with image:', error);
+        // Si el error es de Multer (ej. tipo de archivo no permitido)
+        if (error instanceof multer.MulterError) {
+            return res.status(400).json({ message: `Error de Multer: ${error.message}` });
+        } else if (error.message.includes('¡Solo se permiten archivos de imagen')) { // Error de nuestro fileFilter
+            return res.status(400).json({ message: error.message });
+        }
         res.status(500).json({ message: 'Error al crear el producto', error: error.message });
+    }
+};
+
+// @desc    Actualizar un producto CON IMAGEN
+// @route   PUT /api/products/:id
+// @access  Private/Admin
+const updateProduct = async (req, res) => {
+    try {
+        const { name, description, price, category, stock } = req.body;
+        const product = await Product.findById(req.params.id);
+
+        if (product) {
+            product.name = name || product.name;
+            product.description = description || product.description;
+            product.price = price === undefined ? product.price : price;
+            product.category = category || product.category;
+            product.stock = stock === undefined ? product.stock : stock;
+
+            if (req.file) {
+                // Si se sube un nuevo archivo, actualizar imageUrl
+                // (Opcional: podrías querer borrar la imagen antigua del servidor aquí)
+                product.imageUrl = `/uploads/images/${req.file.filename}`;
+            } else if (req.body.imageUrl !== undefined) {
+                // Si se provee imageUrl en el body (puede ser para borrarla o cambiarla a una URL externa)
+                // Si req.body.imageUrl es "", se borraría la referencia.
+                product.imageUrl = req.body.imageUrl;
+            }
+            // Si no se manda req.file ni req.body.imageUrl, la imagen actual se conserva.
+
+
+            const updatedProduct = await product.save();
+            res.status(200).json(updatedProduct);
+        } else {
+            res.status(404).json({ message: 'Producto no encontrado' });
+        }
+    } catch (error) {
+        console.error(`Error updating product with image for ID ${req.params.id}:`, error);
+        if (error instanceof multer.MulterError) {
+            return res.status(400).json({ message: `Error de Multer: ${error.message}` });
+        } else if (error.message.includes('¡Solo se permiten archivos de imagen')) {
+            return res.status(400).json({ message: error.message });
+        }
+        if (error.kind === 'ObjectId') {
+             return res.status(404).json({ message: 'Producto no encontrado (ID inválido)' });
+        }
+        res.status(500).json({ message: 'Error al actualizar el producto', error: error.message });
     }
 };
 
@@ -107,35 +170,6 @@ const getProductById = async (req, res) => {
     }
 };
 
-// @desc    Actualizar un producto
-// @route   PUT /api/products/:id
-// @access  Private/Admin
-const updateProduct = async (req, res) => {
-    try {
-        const { name, description, price, category, imageUrl, stock } = req.body;
-        const product = await Product.findById(req.params.id);
-
-        if (product) {
-            product.name = name || product.name;
-            product.description = description || product.description;
-            product.price = price === undefined ? product.price : price; // Permite precio 0
-            product.category = category || product.category;
-            product.imageUrl = imageUrl || product.imageUrl;
-            product.stock = stock === undefined ? product.stock : stock; // Permite stock 0
-
-            const updatedProduct = await product.save();
-            res.status(200).json(updatedProduct);
-        } else {
-            res.status(404).json({ message: 'Producto no encontrado' });
-        }
-    } catch (error) {
-        console.error(`Error updating product with ID ${req.params.id}:`, error);
-         if (error.kind === 'ObjectId') {
-             return res.status(404).json({ message: 'Producto no encontrado (ID inválido)' });
-        }
-        res.status(500).json({ message: 'Error al actualizar el producto', error: error.message });
-    }
-};
 
 // @desc    Eliminar un producto
 // @route   DELETE /api/products/:id
