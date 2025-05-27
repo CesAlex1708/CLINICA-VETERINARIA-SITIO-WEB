@@ -33,18 +33,34 @@ const createProduct = async (req, res) => {
 
 const getAllProducts = async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1; // Número de página, por defecto 1
-        const limit = parseInt(req.query.limit) || 10; // Resultados por página, por defecto 10
-        const skip = (page - 1) * limit; // Cuántos documentos saltar
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
 
-        // Contar el total de documentos para calcular el total de páginas
-        const totalProducts = await Product.countDocuments({}); // Si tuvieras filtros, se aplicarían aquí también
+        // Construir el objeto de filtro
+        const filterObject = {};
+        if (req.query.category) {
+            filterObject.category = req.query.category;
+            // Para hacer la búsqueda de categoría insensible a mayúsculas/minúsculas:
+            // filterObject.category = { $regex: `^<span class="math-inline">\{req\.query\.category\}</span>`, $options: 'i' };
+        }
 
-        // Obtener los productos para la página actual
-        const products = await Product.find({}) // Si tuvieras filtros, se aplicarían aquí también
+        // Aquí podríamos añadir más filtros si quisiéramos, por ejemplo, por precio:
+        // if (req.query.price_lte) { // precio menor o igual que
+        //     filterObject.price = { ...filterObject.price, $lte: parseFloat(req.query.price_lte) };
+        // }
+        // if (req.query.price_gte) { // precio mayor o igual que
+        //     filterObject.price = { ...filterObject.price, $gte: parseFloat(req.query.price_gte) };
+        // }
+
+        // Contar el total de documentos que coinciden con el filtro
+        const totalProducts = await Product.countDocuments(filterObject);
+
+        // Obtener los productos para la página actual que coinciden con el filtro
+        const products = await Product.find(filterObject)
             .limit(limit)
             .skip(skip)
-            .sort({ createdAt: -1 }); // Opcional: ordenar por fecha de creación descendente
+            .sort({ createdAt: -1 }); // Opcional: ordenar
 
         res.status(200).json({
             message: "Productos obtenidos exitosamente",
@@ -52,10 +68,11 @@ const getAllProducts = async (req, res) => {
             currentPage: page,
             totalPages: Math.ceil(totalProducts / limit),
             totalProducts: totalProducts,
-            limit: limit
+            limit: limit,
+            filter: filterObject // Opcional: devolver el filtro aplicado
         });
     } catch (error) {
-        console.error('Error fetching products with pagination:', error);
+        console.error('Error fetching products with pagination and filter:', error);
         res.status(500).json({ message: 'Error al obtener los productos', error: error.message });
     }
 };
