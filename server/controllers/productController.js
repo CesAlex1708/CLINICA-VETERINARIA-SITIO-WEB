@@ -30,12 +30,32 @@ const createProduct = async (req, res) => {
 // @desc    Obtener todos los productos
 // @route   GET /api/products
 // @access  Public
+
 const getAllProducts = async (req, res) => {
     try {
-        const products = await Product.find({}); // {} como filtro vacío trae todos
-        res.status(200).json(products);
+        const page = parseInt(req.query.page) || 1; // Número de página, por defecto 1
+        const limit = parseInt(req.query.limit) || 10; // Resultados por página, por defecto 10
+        const skip = (page - 1) * limit; // Cuántos documentos saltar
+
+        // Contar el total de documentos para calcular el total de páginas
+        const totalProducts = await Product.countDocuments({}); // Si tuvieras filtros, se aplicarían aquí también
+
+        // Obtener los productos para la página actual
+        const products = await Product.find({}) // Si tuvieras filtros, se aplicarían aquí también
+            .limit(limit)
+            .skip(skip)
+            .sort({ createdAt: -1 }); // Opcional: ordenar por fecha de creación descendente
+
+        res.status(200).json({
+            message: "Productos obtenidos exitosamente",
+            data: products,
+            currentPage: page,
+            totalPages: Math.ceil(totalProducts / limit),
+            totalProducts: totalProducts,
+            limit: limit
+        });
     } catch (error) {
-        console.error('Error fetching products:', error);
+        console.error('Error fetching products with pagination:', error);
         res.status(500).json({ message: 'Error al obtener los productos', error: error.message });
     }
 };
