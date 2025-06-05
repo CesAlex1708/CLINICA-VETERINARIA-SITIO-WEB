@@ -1,5 +1,5 @@
 const Product = require('../models/Product'); // Importamos el modelo Product
-
+const multer = require('multer');
 
 // @desc    Crear un nuevo producto CON IMAGEN
 // @route   POST /api/products
@@ -94,45 +94,39 @@ const updateProduct = async (req, res) => {
 // @route   GET /api/products
 // @access  Public
 
+// Reemplaza tu función getAllProducts completa con esta:
+
 const getAllProducts = async (req, res) => {
     try {
+        // Asegurarse de que 'limit' y 'page' están definidos al principio
         const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
+        const limit = parseInt(req.query.limit) || 10; // Esta línea probablemente faltaba
         const skip = (page - 1) * limit;
 
-        // Construir el objeto de filtro base
         const filterObject = {};
 
-        // 1. Aplicar filtro de categoría si existe
         if (req.query.category) {
-            filterObject.category = req.query.category;
-            // Para búsqueda de categoría insensible a mayúsculas/minúsculas y exacta:
-            // filterObject.category = { $regex: `^<span class="math-inline">\{req\.query\.category\}</span>`, $options: 'i' };
+            // Filtro por categoría (usando backticks ` ` correctamente)
+            filterObject.category = { $regex: `^${req.query.category}$`, $options: 'i' };
+        } else {
+            // Excluir promociones si no se especifica una categoría
+            filterObject.category = { $ne: 'Promociones' };
         }
 
-        // 2. Aplicar filtro de búsqueda por palabra clave si existe
         if (req.query.search) {
             const searchTerm = req.query.search;
-            // Usamos $or para buscar el término en múltiples campos (nombre o descripción)
-            // $regex para búsqueda parcial, $options: 'i' para insensibilidad a mayúsculas/minúsculas
             filterObject.$or = [
                 { name: { $regex: searchTerm, $options: 'i' } },
                 { description: { $regex: searchTerm, $options: 'i' } }
             ];
-            // Nota: Si la categoría también está presente, MongoDB buscará documentos
-            // que cumplan con la categoría Y (el término de búsqueda en nombre O descripción).
         }
 
-        // Aquí podrían añadirse más filtros (ej. precio)
-
-        // Contar el total de documentos que coinciden con todos los filtros aplicados
         const totalProducts = await Product.countDocuments(filterObject);
 
-        // Obtener los productos para la página actual que coinciden con todos los filtros
         const products = await Product.find(filterObject)
-            .limit(limit)
+            .limit(limit) // Aquí se usa 'limit'
             .skip(skip)
-            .sort({ createdAt: -1 }); // Opcional: ordenar
+            .sort({ createdAt: -1 });
 
         res.status(200).json({
             message: "Productos obtenidos exitosamente",
@@ -140,11 +134,10 @@ const getAllProducts = async (req, res) => {
             currentPage: page,
             totalPages: Math.ceil(totalProducts / limit),
             totalProducts: totalProducts,
-            limit: limit,
-            appliedFilters: filterObject // Devolver los filtros aplicados puede ser útil para depuración
+            limit: limit // Y aquí también se usa 'limit'
         });
     } catch (error) {
-        console.error('Error fetching products with pagination, filter, and search:', error);
+        console.error('Error fetching products:', error);
         res.status(500).json({ message: 'Error al obtener los productos', error: error.message });
     }
 };

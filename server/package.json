@@ -9,7 +9,6 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
@@ -19,5 +18,7 @@
     "mongodb": "^6.16.0",
     "mongoose": "^8.15.0",
     "multer": "^2.0.0"
-  }
+  },
+  "devDependencies": {},
+  "description": ""
 }

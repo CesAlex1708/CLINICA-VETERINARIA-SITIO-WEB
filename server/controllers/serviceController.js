@@ -28,7 +28,19 @@ const createService = async (req, res) => {
 // @access  Public
 const getAllServices = async (req, res) => {
     try {
-        const services = await Service.find({});
+        const filterObject = {};
+        if (req.query.category) {
+            // Usamos una expresión regular para hacer la búsqueda de categoría insensible a mayúsculas/minúsculas
+            // y que coincida con el inicio de la palabra o la palabra completa.
+            // Si tus categorías en la BD son exactas (ej. "Consulta"), puedes usar:
+            // filterObject.category = req.query.category;
+            filterObject.category = { $regex: `^<span class="math-inline">\{req\.query\.category\}</span>`, $options: 'i' };
+        }
+
+        // Aquí no estamos implementando paginación para servicios por ahora,
+        // pero se podría añadir igual que en productos si tienes muchos servicios.
+        const services = await Service.find(filterObject).sort({ name: 1 }); // Ordenar por nombre
+
         res.status(200).json(services);
     } catch (error) {
         console.error('Error fetching services:', error);
@@ -110,7 +122,7 @@ const deleteService = async (req, res) => {
 
 module.exports = {
     createService,
-    getAllServices,
+    getAllServices, // Esta es la función actualizada
     getServiceById,
     updateService,
     deleteService,

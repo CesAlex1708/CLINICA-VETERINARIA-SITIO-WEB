@@ -10,6 +10,7 @@ const {
     deleteProduct,
 } = require('../controllers/productController');
 
+
 // Importar middlewares de autenticación y autorización
 const { protect, authorize } = require('../middleware/authMiddleware');
 const upload = require('../middleware/uploadMiddleware');
